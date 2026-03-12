@@ -27,13 +27,8 @@ Gestão de Itens: Adição e remoção de transações com descrição e data.
 Toggle de Privacidade: Opção para ocultar/exibir o saldo.
 
 ## 🛠️ Tecnologias Utilizadas
-React Native (Framework principal)
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" height="40" alt="React Native" />
 
-Expo (Workflow de desenvolvimento)
-
-Lucide React Native (Pacote de ícones)
-
-Styled Components ou StyleSheet (Estilização baseada no design system do Santander)
 
 ## Como Executar o Projeto:
 

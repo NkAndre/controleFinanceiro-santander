@@ -7,7 +7,7 @@ Uma aplicação de controle financeiro pessoal desenvolvida em React Native, com
 <p align="center">
     
   <img src="https://github.com/user-attachments/assets/71235187-60f6-413d-9962-b4438ddb4098" width="250" alt="Preview 1" />
-  <img src="https://github.com/user-attachments/assets/9a8c4484-640c-45cd-9c05-f49030fa66c8" width="270" alt="Preview 2" />
+  <img src="https://github.com/user-attachments/assets/9a8c4484-640c-45cd-9c05-f49030fa66c8" width="250" alt="Preview 2" />
   <img src="https://github.com/user-attachments/assets/6bcd08d4-bff8-4706-8b69-569ef9fec7d2" width="250" alt="Preview 3" />
 </p>
 

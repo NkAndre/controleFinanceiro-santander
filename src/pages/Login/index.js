@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from './style';
 import { MaterialIcons } from '@expo/vector-icons';
+import api from '../services/api';
 
 
 export default function Login() {
@@ -13,42 +14,42 @@ export default function Login() {
   const [senha, setSenha] = useState('');
 
 
+const handleLogin = async () => {
+  if (email === '' || senha === '') {
+    Alert.alert("Atenção", "Preencha todos os campos.");
+    return;
+  }
 
-  const handleLogin = async () => {
-    // 1. Verifica se os campos não estão vazios
-    if (email === '' || senha === '') {
-      Alert.alert("Atenção", "Preencha todos os campos para entrar.");
-      return;
+  try {
+    // 1. Chamar a API de verdade (AuthController@login no Laravel)
+    const response = await api.post('/login', {
+      email: email,
+      senha: senha
+    });
+
+    // 2. Se o Laravel encontrar o usuário e a senha bater
+    if (response.status === 200) {
+      const user = response.data.user;
+
+      // 3. Salva no navegador que o usuário está logado
+      await AsyncStorage.setItem("@logado", "true");
+      await AsyncStorage.setItem("@User", JSON.stringify(user));
+
+      Alert.alert("Sucesso", `Bem-vindo, ${user.name}!`);
+      
+      // Vai para a Home
+      navigation.replace('Home');
     }
-
-    try {
-      // 2. Busca o objeto do usuário que foi salvo no Cadastro
-      const userData = await AsyncStorage.getItem("@User");
-
-      if (userData !== null) {
-        const user = JSON.parse(userData); // Transforma a string de volta em objeto
-
-        // 3. Compara os dados digitados com os dados salvos
-        if (email === user.email && senha === user.senha) {
-
-          // 4. Se estiver correto, salva que o usuário está LOGADO
-          // Isso é o que o seu arquivo de rotas vai leeer da próxima vez
-          await AsyncStorage.setItem("@logado", "true");
-
-          // Vai para a Home
-          navigation.replace('Home');
-        } else {
-          Alert.alert("Erro", "E-mail ou senha incorretos.");
-        }
-      } else {
-        Alert.alert("Erro", "Nenhum usuário cadastrado neste dispositivo.");
-      }
-    } catch (error) {
-      console.log("Erro ao fazer login", error);
-      Alert.alert("Erro", "Ocorreu um problema ao tentar entrar.");
+  } catch (error) {
+    // 4. Trata erros (Senha errada, e-mail não existe, etc)
+    if (error.response) {
+      Alert.alert("Erro", error.response.data.message || "Credenciais inválidas");
+    } else {
+      Alert.alert("Erro", "Não foi possível conectar ao servidor. Verifique se o Laravel está rodando.");
     }
-  };
-
+    console.log("Erro no login:", error);
+  }
+};
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />

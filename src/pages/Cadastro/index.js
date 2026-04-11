@@ -1,12 +1,10 @@
-import React, { useState,useEffect} from "react";
-import { Text, View, Image, TextInput, StatusBar,Pressable } from "react-native";
+import React, { useState } from "react";
+import { Text, View, Image, TextInput, StatusBar, Pressable, Alert } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from './style'; 
 import { MaterialIcons } from '@expo/vector-icons';
-
-// ... seus imports ...
-import { Alert } from "react-native"; // Importe o Alert
+import api from '../services/api'; // Certifique-se que o caminho está correto
 
 export default function Cadastro() {
   const navigation = useNavigation();
@@ -15,40 +13,54 @@ export default function Cadastro() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
-  const realizarLogin = async () => {
-  // ... lógica de comparar email e senha ...
-  
-  // Se estiver tudo certo:
-  await AsyncStorage.setItem("@logado", "true"); 
-  navigation.replace('Home'); // .replace não deixa ele voltar pro login no botão 'voltar'
-};
-
-  // Função unificada para cadastrar
+  // Função para cadastrar no MySQL via API Laravel
   const realizarCadastro = async () => {
+    // 1. Validação básica de campos vazios
     if (nome === '' || cpf === '' || email === '' || senha === '') {
       Alert.alert("Erro", "Preencha todos os campos!");
       return;
     }
 
     try {
-      const user = {
+      // 2. Chamada para a API Laravel
+      const response = await api.post('/cadastro', {
         nome: nome,
         cpf: cpf,
         email: email,
         senha: senha
-      };
+      });
 
-      // Salva o objeto completo
-      await AsyncStorage.setItem("@User", JSON.stringify(user));
-      
-      console.log("Usuário salvo com sucesso!");
-      Alert.alert("Sucesso", "Cadastro realizado!");
+      // 3. Se o Laravel retornar status 201 (Created)
+      if (response.status === 201) {
+        console.log("Usuário cadastrado no MySQL:", response.data.user);
+        
+        // Opcional: Salva uma cópia local se desejar
+        await AsyncStorage.setItem("@User", JSON.stringify(response.data.user));
+        
+        Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
+        
+        // Limpa os campos
+        setNome(''); setCpf(''); setEmail(''); setSenha('');
 
-      // Após salvar, navega para o Login
-      navigation.navigate('Login');
-      
+        // Navega para a tela de Login
+        navigation.navigate('Login');
+      }
+
     } catch (error) {
-      console.log("Erro ao salvar", error);
+      // 4. Tratamento de erros vindo do Laravel (CORS, Validação, etc)
+      if (error.response) {
+        // Erros de validação do Laravel (Ex: E-mail já existe)
+        const erroMensagem = error.response.data.errors 
+          ? Object.values(error.response.data.errors)[0][0] 
+          : "Erro ao cadastrar";
+          
+        Alert.alert("Ops!", erroMensagem);
+        console.log("Erro do servidor:", error.response.data);
+      } else {
+        // Erro de rede ou servidor desligado
+        Alert.alert("Erro", "Não foi possível conectar ao servidor. Verifique se o Laravel está rodando.");
+        console.log("Erro de conexão:", error.message);
+      }
     }
   };
 
@@ -57,7 +69,6 @@ export default function Cadastro() {
       <StatusBar barStyle="light-content" />
       
       <View style={styles.boxImg}>
-        
         <Image 
           style={styles.img} 
           source={require('../../../assets/logo-santander.png')}
@@ -77,7 +88,7 @@ export default function Cadastro() {
         <TextInput 
           style={styles.input} 
           placeholder="Digite seu cpf"
-          keyboardType="numeric" // Teclado numérico para CPF
+          keyboardType="numeric"
           value={cpf}
           onChangeText={setCpf}
         />
@@ -85,7 +96,7 @@ export default function Cadastro() {
         <TextInput 
           style={styles.input} 
           placeholder="Digite seu E-mail"
-          keyboardType="email-address" // Teclado de email
+          keyboardType="email-address"
           autoCapitalize="none"
           value={email}
           onChangeText={setEmail}
@@ -99,27 +110,20 @@ export default function Cadastro() {
           secureTextEntry={true}
         />
 
-
         <Pressable 
           onPress={realizarCadastro} 
           style={styles.btn} 
         >
           <Text style={styles.buttonText}>Cadastrar</Text>
         </Pressable>
-
-        
       </View>
 
-        <View>
-                <Pressable onPress={() => navigation.navigate('Login')}
-                  style={styles.btnCadastro}>
-                  <Text style={styles.txtNormal}>Ja tenho Conta
-                    
-                  </Text>
-                </Pressable>
-              </View>
-
-      
+      <View>
+        <Pressable onPress={() => navigation.navigate('Login')}
+          style={styles.btnCadastro}>
+          <Text style={styles.txtNormal}>Já tenho Conta</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

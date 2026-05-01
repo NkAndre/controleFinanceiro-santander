@@ -36,7 +36,7 @@ Toggle de Privacidade: Opção para ocultar/exibir o saldo.
 
 1-Clone o repositório:
 
-git clone 
+1- git clone  https://github.com/NkAndre/controleFinanceiro-santander.git
 
 2 - cd banco 
 

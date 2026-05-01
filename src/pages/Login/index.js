@@ -17,17 +17,16 @@ export default function Login() {
     }
 
     try {
-      // 1. Buscar a lista de usuários no Storage
+     
       const usuariosStorage = await AsyncStorage.getItem("@Usuarios_App");
       const listaLogins = usuariosStorage ? JSON.parse(usuariosStorage) : [];
 
-      // 2. Tentar encontrar o usuário com email e senha iguais
       const usuarioEncontrado = listaLogins.find(
         user => user.email === email && user.senha === senha
       );
 
       if (usuarioEncontrado) {
-        // 3. Salvar que este usuário específico está logado agora
+       
         await AsyncStorage.setItem("@logado", "true");
         await AsyncStorage.setItem("@User", JSON.stringify(usuarioEncontrado));
 

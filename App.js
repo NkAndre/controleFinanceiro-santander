@@ -20,7 +20,6 @@ export default function App() {
         const logado = await AsyncStorage.getItem("@logado");
         setEstaLogado(logado === "true");
         
-        // Garante que a Splash apareça por pelo menos 2 segundos
         setTimeout(() => {
           setCarregando(false);
         }, 2000);
@@ -33,7 +32,7 @@ export default function App() {
     verificarStatus();
   }, []);
 
-  // Enquanto estiver carregando, mostra o seu componente Splash real
+  
   if (carregando) {
     return <Splash />;
   }

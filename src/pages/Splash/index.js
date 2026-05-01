@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Image, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
 
 export default function Splash() {
-  // REMOVEMOS o useEffect e o useNavigation daqui!
+
   
   return (
     <View style={styles.container}>

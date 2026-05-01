@@ -18,22 +18,19 @@ export default function Cadastro() {
     }
 
     try {
-      // 1. Pegar a lista de usuários já cadastrados (ou criar uma vazia)
       const usuariosExistentes = await AsyncStorage.getItem("@Usuarios_App");
       const listaLogins = usuariosExistentes ? JSON.parse(usuariosExistentes) : [];
 
-      // 2. Verificar se o e-mail já existe
+   
       const usuarioJaExiste = listaLogins.find(user => user.email === email);
       if (usuarioJaExiste) {
         Alert.alert("Erro", "Este e-mail já está cadastrado.");
         return;
       }
 
-      // 3. Adicionar novo usuário à lista
       const novoUsuario = { nome, cpf, email, senha };
       listaLogins.push(novoUsuario);
 
-      // 4. Salvar a lista atualizada
       await AsyncStorage.setItem("@Usuarios_App", JSON.stringify(listaLogins));
 
       Alert.alert("Sucesso", "Cadastro realizado localmente!");

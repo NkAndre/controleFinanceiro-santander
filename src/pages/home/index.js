@@ -4,9 +4,9 @@ import { Pressable, Text, View, Image, Modal, TextInput, FlatList, ScrollView, A
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker'; // Importando o seletor
+import * as ImagePicker from 'expo-image-picker';
 import styles from './styles';
-
+import * as FileSystem from 'expo-file-system';
 import { calcularSaldo, removerTransacao } from './script';
 
 export default function Home() {
@@ -30,17 +30,17 @@ export default function Home() {
     useEffect(() => {
         async function carregarDados() {
             try {
-                // Nome do Usuário
+             
                 const userData = await AsyncStorage.getItem("@User");
                 if (userData) {
                     const user = JSON.parse(userData);
                     setNomeUsuario(user.nome);
                 }
-                // Transações
+              
                 const salvas = await AsyncStorage.getItem("@transacoes");
                 if (salvas) setListaTransacoes(JSON.parse(salvas));
 
-                // Carregar Foto de Perfil Salva
+            
                 const fotoSalva = await AsyncStorage.getItem("@foto_perfil");
                 if (fotoSalva) setFotoPerfil(fotoSalva);
             } catch (e) {
@@ -51,31 +51,52 @@ export default function Home() {
     }, []);
 
     // --- FUNÇÃO PARA SELECIONAR IMAGEM ---
-    const selecionarImagem = async () => {
-        // Solicita permissão da galeria
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+   const selecionarImagem = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-        if (status !== 'granted') {
-            Alert.alert("Permissão necessária", "Precisamos de acesso à galeria para mudar a foto.");
-            return;
+    if (status !== 'granted') {
+        Alert.alert("Permissão necessária", "Precisamos de acesso à galeria.");
+        return;
+    }
+
+    let resultado = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'], 
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5, 
+    });
+
+    if (!resultado.canceled) {
+        try {
+            const uriTemporaria = resultado.assets[0].uri;
+            const nomeArquivo = `perfil_${Date.now()}.jpg`;
+            const diretorioPermanente = `${FileSystem.documentDirectory}${nomeArquivo}`;
+
+            // 1. Limpeza: Se já existir uma foto antiga, vamos deletar o arquivo físico
+            // para não ocupar espaço desnecessário no celular do usuário.
+            if (fotoPerfil && fotoPerfil.startsWith('file://')) {
+                const infoFotoAntiga = await FileSystem.getInfoAsync(fotoPerfil);
+                if (infoFotoAntiga.exists) {
+                    await FileSystem.deleteAsync(fotoPerfil, { idempotent: true });
+                }
+            }
+
+            // 2. Mover para a pasta permanente do App
+            await FileSystem.copyAsync({
+                from: uriTemporaria,
+                to: diretorioPermanente
+            });
+
+            // 3. Atualizar Estado e AsyncStorage
+            setFotoPerfil(diretorioPermanente);
+            await AsyncStorage.setItem("@foto_perfil", diretorioPermanente);
+            
+        } catch (erro) {
+            console.log("Erro ao processar imagem:", erro);
+            Alert.alert("Erro", "Não foi possível salvar a foto.");
         }
-
-        // Abre a galeria do computador/celular
-        let resultado = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-        });
-
-        if (!resultado.canceled) {
-            const uri = resultado.assets[0].uri;
-            setFotoPerfil(uri);
-            // Salva o caminho da imagem permanentemente
-            await AsyncStorage.setItem("@foto_perfil", uri);
-        }
-    };
-
+    }
+};
     const persistir = async (novaLista) => {
         await AsyncStorage.setItem("@transacoes", JSON.stringify(novaLista));
     };

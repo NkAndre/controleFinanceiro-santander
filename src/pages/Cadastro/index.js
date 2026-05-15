@@ -49,7 +49,7 @@ export default function Cadastro() {
       </View>
 
       <View style={styles.form}>
-        <Text style={styles.label}>Cadastro Local (AsyncStorage):</Text>
+     
         <TextInput style={styles.input} placeholder="Nome completo" value={nome} onChangeText={setNome} />
         <TextInput style={styles.input} placeholder="CPF" keyboardType="numeric" value={cpf} onChangeText={setCpf} />
         <TextInput style={styles.input} placeholder="E-mail" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />

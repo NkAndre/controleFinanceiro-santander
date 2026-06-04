@@ -1,8 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState, useEffect } from "react";
-import { 
-    Pressable, Text, View, Image, Modal, TextInput, 
-    FlatList, ScrollView, Alert 
+import { Pressable, Text, View, Image, Modal, TextInput, 
+FlatList,ScrollView,Alert 
 } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -10,21 +9,18 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 
-// Importações internas
+
 import styles from './styles';
 import { calcularSaldo, removerTransacao } from './script';
 
 export default function Home() {
     const navigation = useNavigation();
-
-    // --- ESTADOS ---
     const [modalVisible, setModalVisible] = useState(false);
     const [modalFotoVisible, setModalFotoVisible] = useState(false); 
     const [tipoOperacao, setTipoOperacao] = useState('');
     const [verSaldo, setVerSaldo] = useState(true);
     const [nomeUsuario, setNomeUsuario] = useState('Usuário');
     const [fotoPerfil, setFotoPerfil] = useState(null); 
-
     const [titulo, setTitulo] = useState('');
     const [valor, setValor] = useState('');
     const [descricao, setDescricao] = useState('');
@@ -32,7 +28,6 @@ export default function Home() {
     const [data, setData] = useState('');
     const [listaTransacoes, setListaTransacoes] = useState([]);
 
-    // --- CARREGAR DADOS AO INICIAR ---
     useEffect(() => {
         async function carregarDados() {
             try {
@@ -41,7 +36,6 @@ export default function Home() {
                     const user = JSON.parse(userData);
                     setNomeUsuario(user.nome);
                 }
-              
                 const salvas = await AsyncStorage.getItem("@transacoes");
                 if (salvas) setListaTransacoes(JSON.parse(salvas));
 
@@ -59,7 +53,6 @@ export default function Home() {
         carregarDados();
     }, []);
 
-    // --- FUNÇÃO AUXILIAR PARA PROCESSAR E SALVAR A IMAGEM LOCALMENTE ---
     const processarESalvarImagem = async (uriTemporaria) => {
         try {
             const nomeArquivo = `perfil_${Date.now()}.jpg`;
@@ -71,16 +64,13 @@ export default function Home() {
                     await FileSystem.deleteAsync(fotoPerfil, { idempotent: true });
                 }
             }
-
             await FileSystem.copyAsync({
                 from: uriTemporaria,
                 to: diretorioPermanente
             });
-
             setFotoPerfil(diretorioPermanente);
             await AsyncStorage.setItem("@foto_perfil", diretorioPermanente);
             setModalFotoVisible(false); 
-            
         } catch (erro) {
             console.log("Erro ao processar imagem:", erro);
             Alert.alert("Erro", "Não foi possível salvar a foto.");

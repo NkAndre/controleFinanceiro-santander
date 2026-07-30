@@ -1,13 +1,14 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState, useEffect } from "react";
-import { Pressable, Text, View, Image, Modal, TextInput, 
-FlatList,ScrollView,Alert 
+import {
+    Pressable, Text, View, Image, Modal, TextInput,
+    FlatList, ScrollView, Alert
 } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 
 import styles from './styles';
@@ -16,11 +17,11 @@ import { calcularSaldo, removerTransacao } from './script';
 export default function Home() {
     const navigation = useNavigation();
     const [modalVisible, setModalVisible] = useState(false);
-    const [modalFotoVisible, setModalFotoVisible] = useState(false); 
+    const [modalFotoVisible, setModalFotoVisible] = useState(false);
     const [tipoOperacao, setTipoOperacao] = useState('');
     const [verSaldo, setVerSaldo] = useState(true);
     const [nomeUsuario, setNomeUsuario] = useState('Usuário');
-    const [fotoPerfil, setFotoPerfil] = useState(null); 
+    const [fotoPerfil, setFotoPerfil] = useState(null);
     const [titulo, setTitulo] = useState('');
     const [valor, setValor] = useState('');
     const [descricao, setDescricao] = useState('');
@@ -55,6 +56,8 @@ export default function Home() {
 
     const processarESalvarImagem = async (uriTemporaria) => {
         try {
+
+            console.log("URI recebida:", uriTemporaria);
             const nomeArquivo = `perfil_${Date.now()}.jpg`;
             const diretorioPermanente = `${FileSystem.documentDirectory}${nomeArquivo}`;
 
@@ -67,13 +70,20 @@ export default function Home() {
             await FileSystem.copyAsync({
                 from: uriTemporaria,
                 to: diretorioPermanente
+
             });
             setFotoPerfil(diretorioPermanente);
             await AsyncStorage.setItem("@foto_perfil", diretorioPermanente);
-            setModalFotoVisible(false); 
+            setModalFotoVisible(false);
         } catch (erro) {
-            console.log("Erro ao processar imagem:", erro);
-            Alert.alert("Erro", "Não foi possível salvar a foto.");
+               console.log("Erro completo:", erro);
+    console.log("Mensagem:", erro.message);
+
+    Alert.alert(
+        "Erro",
+        erro.message || "Erro desconhecido"
+    );
+
         }
     };
 
@@ -87,13 +97,14 @@ export default function Home() {
         }
 
         let resultado = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images, 
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [1, 1],
-            quality: 0.5, 
+            quality: 0.5,
         });
 
         if (!resultado.canceled) {
+            console.log("URI da imagem:", resultado.assets[0].uri);
             await processarESalvarImagem(resultado.assets[0].uri);
         }
     };
@@ -232,9 +243,9 @@ export default function Home() {
                             <MaterialIcons
                                 name={
                                     item.categoria?.trim() === 'Alimentação' ? 'restaurant' :
-                                    item.categoria?.trim() === 'Lazer' ? 'local-play' :
-                                    item.categoria?.trim() === 'Saúde' ? 'medical-services' :
-                                    item.categoria?.trim() === 'Transporte' ? 'directions-car' : 'attach-money'
+                                        item.categoria?.trim() === 'Lazer' ? 'local-play' :
+                                            item.categoria?.trim() === 'Saúde' ? 'medical-services' :
+                                                item.categoria?.trim() === 'Transporte' ? 'directions-car' : 'attach-money'
                                 }
                                 size={24} color="#666"
                             />
@@ -329,7 +340,7 @@ export default function Home() {
                 <View style={styles.modalOverlayCenter}>
                     <View style={styles.modalContentFoto}>
                         <Text style={styles.modalTitleFoto}>Foto de Perfil</Text>
-                        
+
                         <View style={styles.modalFotoBotoesRow}>
                             {/* Botão Câmera */}
                             <Pressable style={styles.btnEscolhaFoto} onPress={tirarFoto}>
@@ -348,8 +359,8 @@ export default function Home() {
                             </Pressable>
                         </View>
 
-                        <Pressable 
-                            onPress={() => setModalFotoVisible(false)} 
+                        <Pressable
+                            onPress={() => setModalFotoVisible(false)}
                             style={styles.btnCancelarFoto}
                         >
                             <Text style={styles.txtBtnCancelar}>Cancelar</Text>
